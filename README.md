@@ -16,5 +16,5 @@ rm -rf workflows
 ### 3.
 Clone repo
 ```bash
-git clone https://github.com/OlofDaniel/workflows.git ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences
+git clone https://github.com/OlofDaniel/workflows.git ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences/workflows
 ```
