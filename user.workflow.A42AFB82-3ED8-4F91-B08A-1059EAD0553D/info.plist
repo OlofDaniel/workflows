@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string></string>
+	<key>connections</key>
+	<dict>
+		<key>1966FF92-8975-441E-9AB4-79A369E45EF4</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>8AD6EC17-703C-42F9-BE32-C3B6C689F7BE</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>5C49EDAA-04F4-4057-A44B-2FA323A3CCFA</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>1966FF92-8975-441E-9AB4-79A369E45EF4</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string></string>
+	<key>description</key>
+	<string></string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Translate + Synonyms</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>action</key>
+				<integer>0</integer>
+				<key>argument</key>
+				<integer>1</integer>
+				<key>focusedappvariable</key>
+				<false/>
+				<key>focusedappvariablename</key>
+				<string></string>
+				<key>hotkey</key>
+				<integer>17</integer>
+				<key>hotmod</key>
+				<integer>1179648</integer>
+				<key>hotstring</key>
+				<string>T</string>
+				<key>leftcursor</key>
+				<false/>
+				<key>modsmode</key>
+				<integer>0</integer>
+				<key>relatedAppsMode</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.trigger.hotkey</string>
+			<key>uid</key>
+			<string>5C49EDAA-04F4-4057-A44B-2FA323A3CCFA</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>script</key>
+				<string>import sys
+import json
+import urllib.request
+import urllib.parse
+import re
+
+
+def main():
+    if len(sys.argv) &lt; 2:
+        return
+    query = sys.argv[1].strip()
+
+    safe_query = urllib.parse.quote(query)
+    url_translate = f"https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&amp;sl=en&amp;tl=sv&amp;dt=t&amp;q={safe_query}"
+
+
+    translated_word = ""
+    try:
+        req = urllib.request.Request(url_translate, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+
+    'Accept-Language': 'en-US,en;q=0.9',
+
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            if data and data[0] and data[0][0]:
+                translated_word = data[0][0][0]
+    except Exception as e:
+        print(json.dumps({"items": [{"title": "Översättningsfel (Google)", "subtitle": str(e)}] }))
+        return
+
+    if not translated_word:
+        print(json.dumps({"items": [{"title": "Kunde inte översätta", "valid": False}] }))
+        return
+
+    safe_translated = urllib.parse.quote(translated_word.lower())
+    url_synonyms = f"https://www.synonymer.se/sv-syn/{safe_translated}"
+
+    synonyms = []
+    try:
+        req = urllib.request.Request(url_synonyms, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
+            html = response.read().decode('utf-8')
+
+            matches = re.findall(r'&lt;a[^&gt;]*href="/sv-syn/[^&gt;]*&gt;([^&lt;]+)&lt;/a&gt;', html)
+
+            if matches:
+                for m in matches:
+                    clean_m = m.strip()
+                    if clean_m.lower() != translated_word.lower() and clean_m not in synonyms:
+                        synonyms.append(clean_m)
+                synonyms = synonyms[:5]
+    except urllib.error.HTTPError:
+        pass
+    except Exception as e:
+        pass
+
+    items = []
+
+    items.append({
+        "title": translated_word,
+        "subtitle": f"Översättning av '{query}'",
+        "arg": translated_word,
+        "valid": True
+    })
+
+    for syn in synonyms:
+        items.append({
+            "title": syn,
+            "subtitle": f"Synonym till {translated_word}",
+            "arg": syn,
+            "valid": True
+        })
+
+    if len(items) == 1:
+        items.append({
+            "title": "Inga synonymer hittades",
+            "subtitle": "Kunde inte hitta synonymer på synonymer.se",
+            "valid": False
+        })
+
+    print(json.dumps({"items": items}))
+
+
+if __name__ == '__main__':
+    main()</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string></string>
+				<key>title</key>
+				<string></string>
+				<key>type</key>
+				<integer>9</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>1966FF92-8975-441E-9AB4-79A369E45EF4</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<false/>
+				<key>clipboardtext</key>
+				<string>{query}</string>
+				<key>ignoredynamicplaceholders</key>
+				<false/>
+				<key>transient</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>8AD6EC17-703C-42F9-BE32-C3B6C689F7BE</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string></string>
+	<key>uidata</key>
+	<dict>
+		<key>1966FF92-8975-441E-9AB4-79A369E45EF4</key>
+		<dict>
+			<key>xpos</key>
+			<real>330</real>
+			<key>ypos</key>
+			<real>115</real>
+		</dict>
+		<key>5C49EDAA-04F4-4057-A44B-2FA323A3CCFA</key>
+		<dict>
+			<key>xpos</key>
+			<real>50</real>
+			<key>ypos</key>
+			<real>115</real>
+		</dict>
+		<key>8AD6EC17-703C-42F9-BE32-C3B6C689F7BE</key>
+		<dict>
+			<key>xpos</key>
+			<real>320</real>
+			<key>ypos</key>
+			<real>330</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array/>
+	<key>webaddress</key>
+	<string></string>
+</dict>
+</plist>

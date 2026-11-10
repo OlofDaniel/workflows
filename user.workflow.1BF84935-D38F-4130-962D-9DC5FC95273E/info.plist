@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string></string>
+	<key>connections</key>
+	<dict>
+		<key>30E7550C-6C7B-46DF-B98F-C651E0FFFC1C</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>CDD83320-4FBE-47CB-8324-C9552E2060F5</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>33020C18-E33E-4E3A-8EC8-BEE493C1FC69</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>2121490E-AC55-4C7F-837B-AFDCF95CB891</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>57923F85-FD4D-4121-9A9C-9E186333DC29</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>33020C18-E33E-4E3A-8EC8-BEE493C1FC69</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>30E7550C-6C7B-46DF-B98F-C651E0FFFC1C</string>
+				<key>modifiers</key>
+				<integer>1048576</integer>
+				<key>modifiersubtext</key>
+				<string>from en to sv</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string></string>
+	<key>description</key>
+	<string></string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Translate</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<false/>
+				<key>clipboardtext</key>
+				<string>{query}</string>
+				<key>ignoredynamicplaceholders</key>
+				<false/>
+				<key>transient</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>2121490E-AC55-4C7F-837B-AFDCF95CB891</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>keyword</key>
+				<string>Translate</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>script</key>
+				<string>import sys
+import json
+import urllib.request
+import urllib.parse
+import re
+
+
+def main():
+    if len(sys.argv) &lt; 2:
+        return
+    query = sys.argv[1].strip()
+
+
+    fromLang = "sv"
+    toLang = "en"
+
+    safe_query = urllib.parse.quote(query)
+    url_translate = f"https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&amp;sl={fromLang}&amp;tl={toLang}&amp;dt=t&amp;q={safe_query}"
+
+
+    translated_word = ""
+    try:
+        req = urllib.request.Request(url_translate, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+
+    'Accept-Language': 'en-US,en;q=0.9',
+
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            if data and data[0] and data[0][0]:
+                translated_word = data[0][0][0]
+    except Exception as e:
+        print(json.dumps({"items": [{"title": "Translation error (Google)", "subtitle": str(e)}] }))
+        return
+
+    if not translated_word:
+        print(json.dumps({"items": [{"title": "Could not translate", "valid": False}] }))
+        return
+
+    safe_translated = urllib.parse.quote(translated_word.lower())
+
+    item = {
+        "title": translated_word,
+        "subtitle": f"Translation of '{query}'",
+        "arg": safe_translated,
+        "valid": True
+    }
+
+
+    print(json.dumps({"items": [item]}))
+
+
+if __name__ == '__main__':
+    main()</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string></string>
+				<key>title</key>
+				<string></string>
+				<key>type</key>
+				<integer>9</integer>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>33020C18-E33E-4E3A-8EC8-BEE493C1FC69</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>keyword</key>
+				<string>Translate</string>
+				<key>subtext</key>
+				<string>from sv to en</string>
+				<key>text</key>
+				<string>Translate</string>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>57923F85-FD4D-4121-9A9C-9E186333DC29</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>script</key>
+				<string>import sys
+import json
+import urllib.request
+import urllib.parse
+import re
+
+
+def main():
+    if len(sys.argv) &lt; 2:
+        return
+    query = sys.argv[1].strip()
+
+
+    fromLang = "en"
+    toLang = "sv"
+
+    safe_query = urllib.parse.quote(query)
+    url_translate = f"https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&amp;sl={fromLang}&amp;tl={toLang}&amp;dt=t&amp;q={safe_query}"
+
+
+    translated_word = ""
+    try:
+        req = urllib.request.Request(url_translate, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+
+    'Accept-Language': 'en-US,en;q=0.9',
+
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            if data and data[0] and data[0][0]:
+                translated_word = data[0][0][0]
+    except Exception as e:
+        print(json.dumps({"items": [{"title": "Translation error (Google)", "subtitle": str(e)}] }))
+        return
+
+    if not translated_word:
+        print(json.dumps({"items": [{"title": "Could not translate", "valid": False}] }))
+        return
+
+    safe_translated = urllib.parse.quote(translated_word.lower())
+
+    item = {
+        "title": translated_word,
+        "subtitle": f"Translation of '{query}'",
+        "arg": safe_translated,
+        "valid": True
+    }
+
+
+    print(json.dumps({"items": [item]}))
+
+
+if __name__ == '__main__':
+    main()</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string></string>
+				<key>title</key>
+				<string></string>
+				<key>type</key>
+				<integer>9</integer>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>30E7550C-6C7B-46DF-B98F-C651E0FFFC1C</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<false/>
+				<key>clipboardtext</key>
+				<string>{query}</string>
+				<key>ignoredynamicplaceholders</key>
+				<false/>
+				<key>transient</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>CDD83320-4FBE-47CB-8324-C9552E2060F5</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string></string>
+	<key>uidata</key>
+	<dict>
+		<key>2121490E-AC55-4C7F-837B-AFDCF95CB891</key>
+		<dict>
+			<key>xpos</key>
+			<real>525</real>
+			<key>ypos</key>
+			<real>15</real>
+		</dict>
+		<key>30E7550C-6C7B-46DF-B98F-C651E0FFFC1C</key>
+		<dict>
+			<key>xpos</key>
+			<real>310</real>
+			<key>ypos</key>
+			<real>375</real>
+		</dict>
+		<key>33020C18-E33E-4E3A-8EC8-BEE493C1FC69</key>
+		<dict>
+			<key>xpos</key>
+			<real>315</real>
+			<key>ypos</key>
+			<real>85</real>
+		</dict>
+		<key>57923F85-FD4D-4121-9A9C-9E186333DC29</key>
+		<dict>
+			<key>xpos</key>
+			<real>40</real>
+			<key>ypos</key>
+			<real>230</real>
+		</dict>
+		<key>CDD83320-4FBE-47CB-8324-C9552E2060F5</key>
+		<dict>
+			<key>xpos</key>
+			<real>575</real>
+			<key>ypos</key>
+			<real>375</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array/>
+	<key>webaddress</key>
+	<string></string>
+</dict>
+</plist>
