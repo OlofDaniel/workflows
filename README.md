@@ -10,7 +10,7 @@ cd ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences
 ### 2.
 Delete empty workflows
 ```bash
-rm workflows
+rm -rf workflows
 ```
 
 ### 3.
